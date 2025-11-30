@@ -1,8 +1,6 @@
-import 'package:aplikasi_informasi_warga/screens/warga/audio_player_page.dart';
 import 'package:aplikasi_informasi_warga/screens/warga/edit_profile_page.dart';
 import 'package:aplikasi_informasi_warga/screens/warga/informasi_list_page.dart';
 import 'package:aplikasi_informasi_warga/screens/auth/login_page.dart';
-import 'package:aplikasi_informasi_warga/screens/warga/offline_video_list_page.dart';
 import 'package:aplikasi_informasi_warga/screens/warga/pengaduan_form_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,24 +67,6 @@ class _WargaHomePageState extends State<WargaHomePage> {
                 context,
                 MaterialPageRoute(builder: (context) => PengaduanFormPage()),
               );
-            },
-          ),
-          _buildMenuCard(
-            context,
-            icon: Icons.audiotrack,
-            title: "Podcast & Audio",
-            subtitle: "Dengarkan audio informasi dari warga",
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => AudioPlayerPage()));
-            },
-          ),
-          _buildMenuCard(
-            context,
-            icon: Icons.video_library,
-            title: "Video Komunitas",
-            subtitle: "Tonton video kegiatan dan tutorial",
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => OfflineVideoListPage()));
             },
           ),
           _buildMenuCard(

@@ -7,15 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: "AIzaSyAmUSly7JZtj0hXIvTZccQyy09KIHfCjG4",
-      appId: "1:958346105988:android:c141983ddbcabb8fb29ed1",
-      messagingSenderId: "958346105988",
-      projectId: "aplikasiinformasiwarga",
-      storageBucket: "aplikasiinformasiwarga.appspot.com",
-    ),
-  );
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 

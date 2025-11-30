@@ -1,3 +1,4 @@
+import 'package:aplikasi_informasi_warga/services/audio_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -51,6 +52,7 @@ class _KelolaInformasiFormState extends State<KelolaInformasiForm> {
         await collection.add(data);
       }
 
+      AudioService.playNotificationSound();
       Navigator.pop(context);
     }
   }

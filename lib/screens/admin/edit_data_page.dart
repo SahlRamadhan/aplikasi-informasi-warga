@@ -1,3 +1,4 @@
+import 'package:aplikasi_informasi_warga/services/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -53,8 +54,9 @@ class _EditDataPageState extends State<EditDataPage> {
         "role": roleController.text,
       };
 
-      documentReference.update(wrg).whenComplete(() {
+      documentReference.update(wrg).then((_) {
         print('${namaController.text} updated');
+        AudioService.playNotificationSound();
         Navigator.pop(context);
       });
     }

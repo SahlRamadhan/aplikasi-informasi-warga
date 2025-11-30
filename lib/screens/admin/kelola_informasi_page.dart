@@ -1,3 +1,4 @@
+import 'package:aplikasi_informasi_warga/services/audio_service.dart';
 import 'package:aplikasi_informasi_warga/screens/admin/kelola_informasi_form.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -80,7 +81,9 @@ class KelolaInformasiPage extends StatelessWidget {
             TextButton(
               child: Text("Hapus", style: TextStyle(color: Colors.red)),
               onPressed: () {
-                doc.reference.delete();
+                doc.reference.delete().then((_) {
+                  AudioService.playNotificationSound();
+                });
                 Navigator.of(context).pop();
               },
             ),

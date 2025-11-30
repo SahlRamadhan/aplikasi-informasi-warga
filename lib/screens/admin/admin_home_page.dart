@@ -1,7 +1,5 @@
-import 'package:aplikasi_informasi_warga/screens/admin/kelola_audio_page.dart';
 import 'package:aplikasi_informasi_warga/screens/admin/kelola_informasi_page.dart';
 import 'package:aplikasi_informasi_warga/screens/admin/kelola_pengaduan_page.dart';
-import 'package:aplikasi_informasi_warga/screens/admin/kelola_video_page.dart';
 import 'package:aplikasi_informasi_warga/screens/auth/login_page.dart';
 import 'package:aplikasi_informasi_warga/screens/admin/user_management_page.dart';
 import 'package:flutter/material.dart';
@@ -74,24 +72,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
             subtitle: "Tanggapi pengaduan dan aspirasi warga",
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => KelolaPengaduanPage()));
-            },
-          ),
-           _buildMenuCard(
-            context,
-            icon: Icons.audiotrack,
-            title: "Kelola Audio",
-            subtitle: "Atur daftar podcast dan audio warga",
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => KelolaAudioPage()));
-            },
-          ),
-           _buildMenuCard(
-            context,
-            icon: Icons.video_library,
-            title: "Kelola Video",
-            subtitle: "Atur daftar video offline komunitas",
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => KelolaVideoPage()));
             },
           ),
           _buildMenuCard(

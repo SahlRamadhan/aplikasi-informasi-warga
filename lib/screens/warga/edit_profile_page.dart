@@ -1,3 +1,4 @@
+import 'package:aplikasi_informasi_warga/services/audio_service.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p; // Use 'p' as an alias for path
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -34,7 +35,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _alamatController = TextEditingController();
     _noController = TextEditingController();
     _loadUserData();
-    _loadMedia();
+    // _loadMedia() logic will be integrated into _loadUserData for image path
   }
 
   @override
@@ -67,33 +68,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _emailController.text = userData['email'] ?? '';
         _alamatController.text = userData['alamat'] ?? '';
         _noController.text = userData['no'] ?? '';
+
+        // Load profile image path from Firestore first
+        String? profileImagePathFromFirestore = userData['profileImagePath'];
+        if (profileImagePathFromFirestore != null) {
+          _image = File(profileImagePathFromFirestore);
+        } else {
+          // Fallback to SharedPreferences if not in Firestore
+          String? imagePathFromPrefs = prefs.getString('profile_image');
+          if (imagePathFromPrefs != null) {
+            _image = File(imagePathFromPrefs);
+          }
+        }
+
+        // Load profile video path from Firestore first
+        String? profileVideoPathFromFirestore = userData['profileVideoPath'];
+        if (profileVideoPathFromFirestore != null) {
+          _video = File(profileVideoPathFromFirestore);
+        } else {
+          // Fallback to SharedPreferences if not in Firestore
+          String? videoPathFromPrefs = prefs.getString('profile_video');
+          if (videoPathFromPrefs != null) {
+            _video = File(videoPathFromPrefs);
+          }
+        }
+
+        // Initialize video controller if a video was loaded
+        if (_video != null) {
+          _videoController = VideoPlayerController.file(_video!)
+            ..initialize().then((_) {
+              setState(() {});
+            });
+        }
       }
     }
     setState(() {
       _isLoading = false;
     });
-  }
-
-  Future<void> _loadMedia() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? imagePath = prefs.getString('profile_image');
-    String? videoPath = prefs.getString('profile_video');
-
-    if (imagePath != null) {
-      setState(() {
-        _image = File(imagePath);
-      });
-    }
-
-    if (videoPath != null) {
-      setState(() {
-        _video = File(videoPath);
-      });
-      _videoController = VideoPlayerController.file(_video!)
-        ..initialize().then((_) {
-          setState(() {});
-        });
-    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -102,10 +113,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (pickedFile != null) {
       File imageFile = File(pickedFile.path);
       final directory = await getApplicationDocumentsDirectory();
-      final String newPath = path.join(
-        directory.path,
-        path.basename(imageFile.path),
-      );
+      final String newPath = p.join(directory.path, p.basename(imageFile.path));
       final File newImage = await imageFile.copy(newPath);
 
       setState(() {
@@ -113,7 +121,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       });
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('profile_image', newImage.path);
+      await prefs.setString(
+        'profile_image',
+        newImage.path,
+      ); // Still save to prefs
     }
   }
 
@@ -123,10 +134,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (pickedFile != null) {
       File videoFile = File(pickedFile.path);
       final directory = await getApplicationDocumentsDirectory();
-      final String newPath = path.join(
-        directory.path,
-        path.basename(videoFile.path),
-      );
+      final String newPath = p.join(directory.path, p.basename(videoFile.path));
       final File newVideo = await videoFile.copy(newPath);
 
       setState(() {
@@ -144,21 +152,48 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  Future<void> _deleteVideo() async {
+    setState(() {
+      _video = null;
+      _videoController?.dispose();
+      _videoController = null;
+    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('profile_video');
+  }
+
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
+      Map<String, dynamic> updateData = {
+        'nama': _namaController.text,
+        'email': _emailController.text,
+        'alamat': _alamatController.text,
+        'no': _noController.text,
+      };
+
+      // Get profile image path from SharedPreferences to save to Firestore
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? profileImagePath = prefs.getString('profile_image');
+      if (profileImagePath != null) {
+        updateData['profileImagePath'] = profileImagePath;
+      }
+
+      // Get profile video path from SharedPreferences to save to Firestore
+      String? profileVideoPath = prefs.getString('profile_video');
+      if (profileVideoPath != null) {
+        updateData['profileVideoPath'] = profileVideoPath;
+      }
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_userDocId)
-          .update({
-            'nama': _namaController.text,
-            'email': _emailController.text,
-            'alamat': _alamatController.text,
-            'no': _noController.text,
-          });
+          .update(updateData);
+
+      AudioService.playNotificationSound();
 
       ScaffoldMessenger.of(
         context,
@@ -208,11 +243,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             )
                           : Container(),
                     SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () => _showPicker(context, 'video'),
-                      child: Text(
-                        _video == null ? 'Pilih Video' : 'Ganti Video',
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () => _showPicker(context, 'video'),
+                          child: Text(
+                            _video == null ? 'Pilih Video' : 'Ganti Video',
+                          ),
+                        ),
+                        if (_video != null) ...[
+                          SizedBox(width: 10),
+                          ElevatedButton(
+                            onPressed: _deleteVideo,
+                            child: Text('Hapus Video'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     SizedBox(height: 30),
                     TextFormField(

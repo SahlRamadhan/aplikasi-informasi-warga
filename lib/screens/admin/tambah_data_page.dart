@@ -1,3 +1,4 @@
+import 'package:aplikasi_informasi_warga/services/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -27,6 +28,7 @@ class _TambahDataPageState extends State<TambahDataPage> {
           })
           .then((docRef) {
             print('Document added with ID: ${docRef.id}');
+            AudioService.playNotificationSound();
             Navigator.pop(context);
           })
           .catchError((error) => print("Failed to add document: $error"));
